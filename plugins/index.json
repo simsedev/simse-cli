@@ -1,1 +1,34 @@
-{}
+{
+  "plugins": [
+    {
+      "name": "claude",
+      "kind": "acp",
+      "version": "0.1.0",
+      "description": "Anthropic Claude provider via Messages API"
+    },
+    {
+      "name": "copilot",
+      "kind": "acp",
+      "version": "0.1.0",
+      "description": "GitHub Copilot provider via SDK"
+    },
+    {
+      "name": "github",
+      "kind": "mcp",
+      "version": "0.1.0",
+      "description": "GitHub REST API tools and resources"
+    },
+    {
+      "name": "ollama",
+      "kind": "acp",
+      "version": "0.1.0",
+      "description": "Local Ollama server provider"
+    },
+    {
+      "name": "perplexity",
+      "kind": "mcp",
+      "version": "0.1.0",
+      "description": "Perplexity Sonar web search tool"
+    }
+  ]
+}
