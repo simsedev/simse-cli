@@ -1,6 +1,6 @@
 #!/bin/sh
-# SimSE CLI installer
-# Usage: curl -fsSL https://simse.dev/install | sh
+# simse installer
+# Usage: curl -fsSL https://raw.githubusercontent.com/simsedev/simse-cli/main/install.sh | sh
 #
 # Installs the latest simse binary to /usr/local/bin (or ~/.local/bin if
 # /usr/local/bin is not writable).
@@ -8,7 +8,7 @@
 set -e
 
 REPO="simsedev/simse-cli"
-BINARY_NAME="simse-cli"
+BINARY_NAME="simse"
 INSTALL_DIR="/usr/local/bin"
 
 # ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ get_latest_version() {
 # ---------------------------------------------------------------------------
 
 download_and_install() {
-    FILENAME="simse-cli-${PLATFORM}.tar.gz"
+    FILENAME="simse-${PLATFORM}.tar.gz"
     URL="https://github.com/${REPO}/releases/download/${VERSION}/${FILENAME}"
 
     info "downloading simse ${VERSION} for ${PLATFORM}..."

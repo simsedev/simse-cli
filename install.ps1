@@ -1,10 +1,10 @@
-# SimSE CLI installer for Windows
-# Usage: irm https://simse.dev/install.ps1 | iex
+# simse installer for Windows
+# Usage: irm https://raw.githubusercontent.com/simsedev/simse-cli/main/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
 $Repo = "simsedev/simse-cli"
-$BinaryName = "simse-cli.exe"
+$BinaryName = "simse.exe"
 $InstallDir = "$env:LOCALAPPDATA\simse\bin"
 
 # ---------------------------------------------------------------------------
@@ -36,7 +36,7 @@ if (-not $Version) {
 # Download
 # ---------------------------------------------------------------------------
 
-$FileName = "simse-cli-${Platform}.zip"
+$FileName = "simse-${Platform}.zip"
 $Url = "https://github.com/$Repo/releases/download/$Version/$FileName"
 
 Write-Host "Downloading simse $Version for $Platform..." -ForegroundColor Cyan
@@ -85,7 +85,7 @@ Remove-Item -Recurse -Force $TmpDir -ErrorAction SilentlyContinue
 # ---------------------------------------------------------------------------
 
 Write-Host ""
-Write-Host "simse $Version installed to $InstallDir\$BinaryName" -ForegroundColor Green
+Write-Host "simse $Version installed to $InstallDir\simse.exe" -ForegroundColor Green
 Write-Host "Run 'simse' to get started." -ForegroundColor Green
 Write-Host ""
 Write-Host "Note: You may need to restart your terminal for PATH changes to take effect." -ForegroundColor Yellow
