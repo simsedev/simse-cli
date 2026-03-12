@@ -1,0 +1,6 @@
+{
+  "name": "copilot",
+  "kind": "acp",
+  "version": "0.1.0",
+  "description": "GitHub Copilot provider via SDK"
+}

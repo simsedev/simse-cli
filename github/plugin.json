@@ -1,0 +1,6 @@
+{
+  "name": "github",
+  "kind": "mcp",
+  "version": "0.1.0",
+  "description": "GitHub REST API tools and resources"
+}
