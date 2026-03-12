@@ -69,6 +69,21 @@ get_latest_version() {
 # Download and install
 # ---------------------------------------------------------------------------
 
+remove_old_versions() {
+    # Remove any existing simse binaries from common locations so stale
+    # versions don't shadow the new install.
+    for dir in /usr/local/bin /usr/bin "$HOME/.local/bin" "$HOME/bin" "$HOME/.cargo/bin"; do
+        if [ -f "${dir}/${BINARY_NAME}" ]; then
+            info "removing old simse at ${dir}/${BINARY_NAME}"
+            if [ -w "${dir}/${BINARY_NAME}" ]; then
+                rm -f "${dir}/${BINARY_NAME}"
+            else
+                sudo rm -f "${dir}/${BINARY_NAME}" 2>/dev/null || true
+            fi
+        fi
+    done
+}
+
 download_and_install() {
     FILENAME="simse-${PLATFORM}.tar.gz"
     URL="https://github.com/${REPO}/releases/download/${VERSION}/${FILENAME}"
@@ -103,12 +118,22 @@ download_and_install() {
     chmod +x "${TARGET}/${BINARY_NAME}"
     info "simse ${VERSION} installed to ${TARGET}/${BINARY_NAME}"
 
-    # Check if target is in PATH
+    # Ensure target is in PATH; update shell profile if needed
     case ":$PATH:" in
         *":${TARGET}:"*) ;;
         *)
-            printf '\033[1;33mwarning:\033[0m %s is not in your PATH\n' "$TARGET"
-            echo "  Add it with: export PATH=\"${TARGET}:\$PATH\""
+            SHELL_NAME="$(basename "$SHELL" 2>/dev/null || echo "sh")"
+            case "$SHELL_NAME" in
+                zsh)  PROFILE="$HOME/.zshrc" ;;
+                bash) PROFILE="$HOME/.bashrc" ;;
+                fish) PROFILE="$HOME/.config/fish/config.fish" ;;
+                *)    PROFILE="$HOME/.profile" ;;
+            esac
+            if [ -f "$PROFILE" ] && ! grep -q "${TARGET}" "$PROFILE" 2>/dev/null; then
+                printf '\nexport PATH="%s:$PATH"\n' "$TARGET" >> "$PROFILE"
+                info "added ${TARGET} to ${PROFILE}"
+            fi
+            export PATH="${TARGET}:$PATH"
             ;;
     esac
 }
@@ -120,8 +145,13 @@ download_and_install() {
 main() {
     detect_platform
     get_latest_version
+    remove_old_versions
     download_and_install
     info "run 'simse' to get started"
 }
 
 main
+
+# Hint: if you piped this script (curl | sh), PATH changes won't apply
+# to your current shell.  Run the following to pick them up:
+#   source ~/.bashrc   # or ~/.zshrc

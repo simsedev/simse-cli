@@ -57,6 +57,30 @@ try {
 
 Expand-Archive -Path $TmpFile -DestinationPath $TmpDir -Force
 
+# ---------------------------------------------------------------------------
+# Remove old versions from common locations
+# ---------------------------------------------------------------------------
+
+$OldLocations = @(
+    "$env:ProgramFiles\simse\simse.exe",
+    "$env:USERPROFILE\.cargo\bin\simse.exe",
+    "$env:USERPROFILE\bin\simse.exe",
+    "$env:USERPROFILE\scoop\shims\simse.exe"
+)
+
+foreach ($OldPath in $OldLocations) {
+    if (Test-Path $OldPath) {
+        Write-Host "Removing old simse at $OldPath" -ForegroundColor Yellow
+        Remove-Item -Force $OldPath -ErrorAction SilentlyContinue
+    }
+}
+
+# Also remove from install dir if it exists (will be replaced)
+$ExistingInstall = Join-Path $InstallDir $BinaryName
+if (Test-Path $ExistingInstall) {
+    Remove-Item -Force $ExistingInstall -ErrorAction SilentlyContinue
+}
+
 if (-not (Test-Path $InstallDir)) {
     New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 }
@@ -84,8 +108,12 @@ Remove-Item -Recurse -Force $TmpDir -ErrorAction SilentlyContinue
 # Done
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Reload PATH in current session
+# ---------------------------------------------------------------------------
+
+$env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
+
 Write-Host ""
 Write-Host "simse $Version installed to $InstallDir\simse.exe" -ForegroundColor Green
 Write-Host "Run 'simse' to get started." -ForegroundColor Green
-Write-Host ""
-Write-Host "Note: You may need to restart your terminal for PATH changes to take effect." -ForegroundColor Yellow
