@@ -4,7 +4,7 @@
 $ErrorActionPreference = "Stop"
 
 $Repo = "simsedev/simse-cli"
-$BinaryName = "simse.exe"
+$BinaryName = "simse-cli.exe"
 $InstallDir = "$env:LOCALAPPDATA\simse\bin"
 
 # ---------------------------------------------------------------------------
@@ -15,6 +15,7 @@ $Arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture
 switch ($Arch) {
     "X64"   { $Platform = "windows-x86_64" }
     "Arm64" { $Platform = "windows-aarch64" }
+
     default { Write-Error "Unsupported architecture: $Arch"; exit 1 }
 }
 
@@ -35,7 +36,7 @@ if (-not $Version) {
 # Download
 # ---------------------------------------------------------------------------
 
-$FileName = "simse-${Platform}.zip"
+$FileName = "simse-cli-${Platform}.zip"
 $Url = "https://github.com/$Repo/releases/download/$Version/$FileName"
 
 Write-Host "Downloading simse $Version for $Platform..." -ForegroundColor Cyan

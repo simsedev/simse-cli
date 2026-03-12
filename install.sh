@@ -8,7 +8,7 @@
 set -e
 
 REPO="simsedev/simse-cli"
-BINARY_NAME="simse"
+BINARY_NAME="simse-cli"
 INSTALL_DIR="/usr/local/bin"
 
 # ---------------------------------------------------------------------------
@@ -70,7 +70,7 @@ get_latest_version() {
 # ---------------------------------------------------------------------------
 
 download_and_install() {
-    FILENAME="simse-${PLATFORM}.tar.gz"
+    FILENAME="simse-cli-${PLATFORM}.tar.gz"
     URL="https://github.com/${REPO}/releases/download/${VERSION}/${FILENAME}"
 
     info "downloading simse ${VERSION} for ${PLATFORM}..."
