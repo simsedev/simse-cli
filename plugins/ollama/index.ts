@@ -1,5 +1,5 @@
 // Ollama ACP Provider Plugin
-// Calls Ollama's OpenAI-compatible API with streaming.
+// Calls Ollama's native /api/chat endpoint with streaming.
 
 declare namespace Simse {
 	function sendDelta(sessionId: string, text: string): void;
@@ -82,11 +82,17 @@ globalThis.__simsePlugin = {
 			stream: true,
 		};
 
-		if (options.temperature !== undefined) body.temperature = options.temperature;
-		if (options.topP !== undefined) body.top_p = options.topP;
-		if (options.maxTokens !== undefined) body.max_tokens = options.maxTokens;
+		if (options.temperature !== undefined) {
+			body.options = { ...(body.options as Record<string, unknown> ?? {}), temperature: options.temperature };
+		}
+		if (options.topP !== undefined) {
+			body.options = { ...(body.options as Record<string, unknown> ?? {}), top_p: options.topP };
+		}
+		if (options.maxTokens !== undefined) {
+			body.options = { ...(body.options as Record<string, unknown> ?? {}), num_predict: options.maxTokens };
+		}
 
-		const response = await fetch(`${baseUrl}/v1/chat/completions`, {
+		const response = await fetch(`${baseUrl}/api/chat`, {
 			method: "POST",
 			headers: { "content-type": "application/json" },
 			body: JSON.stringify(body),
@@ -97,6 +103,9 @@ globalThis.__simsePlugin = {
 			throw new Error(`Ollama API error ${response.status}: ${errorText}`);
 		}
 
+		// Ollama streams newline-delimited JSON objects.
+		// Each object has: { model, message: { role, content }, done, ...metrics }
+		// When done=true, the final object includes eval_count, prompt_eval_count, etc.
 		const reader = response.body!.getReader();
 		const decoder = new TextDecoder();
 		let buffer = "";
@@ -115,25 +124,23 @@ globalThis.__simsePlugin = {
 
 			for (const line of lines) {
 				const trimmed = line.trim();
-				if (!trimmed || trimmed === "data: [DONE]") continue;
-
-				const jsonStr = trimmed.startsWith("data: ") ? trimmed.slice(6) : trimmed;
+				if (!trimmed) continue;
 
 				try {
-					const data = JSON.parse(jsonStr);
-					const choice = data.choices?.[0];
+					const data = JSON.parse(trimmed);
 
-					if (choice?.delta?.content) {
-						Simse.sendDelta(sessionId, choice.delta.content);
+					// Stream content delta
+					if (data.message?.content) {
+						Simse.sendDelta(sessionId, data.message.content);
 					}
 
-					if (choice?.finish_reason) {
-						stopReason = choice.finish_reason === "stop" ? "end_turn" : "max_tokens";
-					}
-
-					if (data.usage) {
-						promptTokens = data.usage.prompt_tokens ?? 0;
-						completionTokens = data.usage.completion_tokens ?? 0;
+					// Final message with metrics
+					if (data.done === true) {
+						if (data.done_reason === "length") {
+							stopReason = "max_tokens";
+						}
+						promptTokens = data.prompt_eval_count ?? 0;
+						completionTokens = data.eval_count ?? 0;
 					}
 				} catch {
 					// Skip unparseable lines.
