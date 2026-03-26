@@ -2,7 +2,7 @@
 // Translates ACP prompts to Anthropic Messages API calls with streaming.
 
 import type { AcpPlugin, PluginMessage, PromptOptions, SimseHost } from '@simse/plugin-sdk';
-import { registerPlugin } from '@simse/plugin-sdk';
+
 
 declare const Simse: SimseHost;
 declare const Deno: { env: { get(key: string): string | undefined; set(key: string, value: string): void } };
@@ -37,7 +37,7 @@ function parseSSELines(text: string): Array<{ event: string; data: string }> {
 	return events;
 }
 
-registerPlugin({
+(globalThis as any).__simsePlugin = ({
 	auth: {
 		type: "api_key",
 		name: "ANTHROPIC_API_KEY",

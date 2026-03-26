@@ -126,7 +126,6 @@ export interface McpPlugin extends SimsePlugin {
 
 // --- Registration ---
 
-/** Register a plugin with the simse runtime. */
-export function registerPlugin<T extends SimsePlugin>(plugin: T): void {
-	(globalThis as Record<string, unknown>).__simsePlugin = plugin;
-}
+// Plugin registration: plugins assign to (globalThis as any).__simsePlugin directly.
+// This SDK is types-only — no runtime code. The Deno runtime loads plugins as
+// scripts (not modules), so import statements must be type-only.

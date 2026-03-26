@@ -2,7 +2,7 @@
 // Provides GitHub REST API tools and resources via the MCP interface.
 
 import type { McpPlugin, McpToolResult, McpResourceResult, SimseHost } from '@simse/plugin-sdk';
-import { registerPlugin } from '@simse/plugin-sdk';
+
 
 declare const Simse: SimseHost;
 declare const Deno: { env: { get(key: string): string | undefined; set(key: string, value: string): void } };
@@ -58,7 +58,7 @@ function errorResult(msg: string): McpToolResult {
 	};
 }
 
-registerPlugin({
+(globalThis as any).__simsePlugin = ({
 	kind: "mcp",
 
 	auth: [

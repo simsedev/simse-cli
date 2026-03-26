@@ -2,7 +2,7 @@
 // Calls Ollama's native /api/chat endpoint with streaming and tool calling.
 
 import type { AcpPlugin, PluginMessage, PromptOptions, ToolDef, SimseHost } from '@simse/plugin-sdk';
-import { registerPlugin } from '@simse/plugin-sdk';
+
 
 declare const Simse: SimseHost;
 
@@ -40,7 +40,7 @@ function formatToolCallsAsXml(
 let baseUrl = 'http://localhost:11434';
 let defaultModel = 'gpt-oss:latest';
 
-registerPlugin({
+(globalThis as any).__simsePlugin = ({
 	auth: { type: 'none' },
 
 	async initialize(config: Record<string, unknown>) {

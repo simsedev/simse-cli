@@ -2,7 +2,7 @@
 // Uses @github/copilot-sdk for streaming chat completions.
 
 import type { AcpPlugin, PluginMessage, PromptOptions, SimseHost } from '@simse/plugin-sdk';
-import { registerPlugin } from '@simse/plugin-sdk';
+
 
 declare const Simse: SimseHost;
 
@@ -126,4 +126,4 @@ const plugin: AcpPlugin = {
 	},
 };
 
-registerPlugin(plugin);
+(globalThis as any).__simsePlugin = (plugin);
