@@ -1,0 +1,6 @@
+{
+    "name": "format-on-save",
+    "kind": "hook",
+    "version": "0.1.0",
+    "description": "Auto-format files after tool writes"
+}

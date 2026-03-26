@@ -1,0 +1,9 @@
+# Format files after Write or Edit tool calls.
+# Detects file type and runs the appropriate formatter.
+
+[[PostToolUse]]
+matcher = "fs_write|fs_edit"
+
+[PostToolUse.hook]
+type = "command"
+command = "${PLUGIN_ROOT}/scripts/format.sh"

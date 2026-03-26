@@ -1,0 +1,6 @@
+{
+    "name": "code-review",
+    "kind": "skill",
+    "version": "0.1.0",
+    "description": "Structured code review skill with checklist"
+}
