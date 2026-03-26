@@ -1,6 +1,10 @@
 // Copilot ACP Provider Plugin
 // Uses @github/copilot-sdk for streaming chat completions.
-export {};
+
+import type { AcpPlugin, PluginMessage, PromptOptions, SimseHost } from '@simse/plugin-sdk';
+import { registerPlugin } from '@simse/plugin-sdk';
+
+declare const Simse: SimseHost;
 
 interface ProviderConfig {
 	cliUrl?: string;
@@ -11,7 +15,7 @@ let client: any = null;
 let defaultModel = "gpt-4.1";
 const sessions: Map<string, any> = new Map();
 
-__simsePlugin = {
+const plugin: AcpPlugin = {
 	auth: { type: "sdk_managed", description: "Handled by @github/copilot-sdk" },
 
 	async initialize(config: ProviderConfig) {
@@ -70,7 +74,7 @@ __simsePlugin = {
 	) {
 		let session = sessions.get(sessionId);
 		if (!session) {
-			await __simsePlugin.newSession!(sessionId, options as Record<string, unknown>);
+			await plugin.newSession!(sessionId, options as Record<string, unknown>);
 			session = sessions.get(sessionId);
 		}
 
@@ -121,3 +125,5 @@ __simsePlugin = {
 		Simse.log("info", "Copilot plugin disposed");
 	},
 };
+
+registerPlugin(plugin);

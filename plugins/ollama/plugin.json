@@ -2,5 +2,6 @@
   "name": "ollama",
   "kind": "acp",
   "version": "0.1.0",
-  "description": "Local Ollama server provider"
+  "description": "Local Ollama server provider",
+  "main": "src/index.ts"
 }

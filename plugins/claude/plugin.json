@@ -2,5 +2,6 @@
   "name": "claude",
   "kind": "acp",
   "version": "0.1.0",
-  "description": "Anthropic Claude provider via Messages API"
+  "description": "Anthropic Claude provider via Messages API",
+  "main": "src/index.ts"
 }

@@ -2,5 +2,6 @@
   "name": "github",
   "kind": "mcp",
   "version": "0.1.0",
-  "description": "GitHub REST API tools and resources"
+  "description": "GitHub REST API tools and resources",
+  "main": "src/index.ts"
 }

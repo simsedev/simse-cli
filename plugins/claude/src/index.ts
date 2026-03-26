@@ -1,6 +1,11 @@
 // Claude ACP Provider Plugin
 // Translates ACP prompts to Anthropic Messages API calls with streaming.
-export {};
+
+import type { AcpPlugin, PluginMessage, PromptOptions, SimseHost } from '@simse/plugin-sdk';
+import { registerPlugin } from '@simse/plugin-sdk';
+
+declare const Simse: SimseHost;
+declare const Deno: { env: { get(key: string): string | undefined; set(key: string, value: string): void } };
 
 interface ProviderConfig {
 	apiKey?: string;
@@ -32,7 +37,7 @@ function parseSSELines(text: string): Array<{ event: string; data: string }> {
 	return events;
 }
 
-__simsePlugin = {
+registerPlugin({
 	auth: {
 		type: "api_key",
 		name: "ANTHROPIC_API_KEY",
@@ -161,4 +166,4 @@ __simsePlugin = {
 	async dispose() {
 		Simse.log("info", "Claude plugin disposed");
 	},
-};
+} satisfies AcpPlugin);

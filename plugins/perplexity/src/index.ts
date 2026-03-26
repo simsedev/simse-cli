@@ -1,6 +1,11 @@
 // Perplexity MCP Plugin
 // Provides a perplexity_search tool that calls the Perplexity Sonar API.
-export {};
+
+import type { McpPlugin, McpToolDef, McpToolResult, McpResourceResult, SimseHost } from '@simse/plugin-sdk';
+import { registerPlugin } from '@simse/plugin-sdk';
+
+declare const Simse: SimseHost;
+declare const Deno: { env: { get(key: string): string | undefined; set(key: string, value: string): void } };
 
 interface PluginConfig {
 	apiKey?: string;
@@ -32,7 +37,7 @@ const SEARCH_TOOL: McpToolDef = {
 	},
 };
 
-__simsePlugin = {
+registerPlugin({
 	kind: "mcp",
 
 	auth: {
@@ -64,6 +69,10 @@ __simsePlugin = {
 			tools: [SEARCH_TOOL],
 			resources: [],
 		};
+	},
+
+	tools() {
+		return [SEARCH_TOOL];
 	},
 
 	async callTool(
@@ -181,4 +190,4 @@ __simsePlugin = {
 	async dispose() {
 		Simse.log("info", "Perplexity plugin disposed");
 	},
-};
+} satisfies McpPlugin);

@@ -1,11 +1,10 @@
 // Ollama ACP Provider Plugin
 // Calls Ollama's native /api/chat endpoint with streaming and tool calling.
-export {};
 
-interface ProviderConfig {
-	baseUrl?: string;
-	defaultModel?: string;
-}
+import type { AcpPlugin, PluginMessage, PromptOptions, ToolDef, SimseHost } from '@simse/plugin-sdk';
+import { registerPlugin } from '@simse/plugin-sdk';
+
+declare const Simse: SimseHost;
 
 /** Convert core ToolDef[] to Ollama's native tool format. */
 function toOllamaTools(
@@ -41,12 +40,12 @@ function formatToolCallsAsXml(
 let baseUrl = 'http://localhost:11434';
 let defaultModel = 'gpt-oss:latest';
 
-__simsePlugin = {
+registerPlugin({
 	auth: { type: 'none' },
 
-	async initialize(config: ProviderConfig) {
-		baseUrl = config.baseUrl ?? baseUrl;
-		defaultModel = config.defaultModel ?? defaultModel;
+	async initialize(config: Record<string, unknown>) {
+		baseUrl = (config.baseUrl as string) ?? baseUrl;
+		defaultModel = (config.defaultModel as string) ?? defaultModel;
 
 		try {
 			const healthResp = await fetch(`${baseUrl}/api/tags`);
@@ -207,4 +206,4 @@ __simsePlugin = {
 	async dispose() {
 		Simse.log('info', 'Ollama plugin disposed');
 	},
-};
+} satisfies AcpPlugin);

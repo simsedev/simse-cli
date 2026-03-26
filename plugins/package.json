@@ -1,0 +1,4 @@
+{
+	"private": true,
+	"workspaces": ["plugin-sdk", "claude", "copilot", "github", "ollama", "perplexity"]
+}

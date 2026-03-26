@@ -1,6 +1,11 @@
 // GitHub MCP Plugin
 // Provides GitHub REST API tools and resources via the MCP interface.
-export {};
+
+import type { McpPlugin, McpToolResult, McpResourceResult, SimseHost } from '@simse/plugin-sdk';
+import { registerPlugin } from '@simse/plugin-sdk';
+
+declare const Simse: SimseHost;
+declare const Deno: { env: { get(key: string): string | undefined; set(key: string, value: string): void } };
 
 interface PluginConfig {
 	token?: string;
@@ -53,7 +58,7 @@ function errorResult(msg: string): McpToolResult {
 	};
 }
 
-__simsePlugin = {
+registerPlugin({
 	kind: "mcp",
 
 	auth: [
@@ -223,6 +228,11 @@ __simsePlugin = {
 		};
 	},
 
+	tools() {
+		// Tools are declared in initialize; this satisfies the McpPlugin interface.
+		return [];
+	},
+
 	async callTool(name: string, args: Record<string, unknown>) {
 		try {
 			switch (name) {
@@ -303,7 +313,7 @@ __simsePlugin = {
 		}
 	},
 
-	async readResource(uri: string) {
+	async readResource(uri: string): Promise<McpResourceResult> {
 		const match = uri.match(/^github:\/\/repos\/([^/]+)\/([^/]+)\/readme$/);
 		if (!match) {
 			throw new Error(`Unknown resource URI: ${uri}`);
@@ -340,4 +350,4 @@ __simsePlugin = {
 	async dispose() {
 		Simse.log("info", "GitHub MCP plugin disposed");
 	},
-};
+} satisfies McpPlugin);
