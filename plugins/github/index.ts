@@ -1,9 +1,6 @@
 // GitHub MCP Plugin
 // Provides GitHub REST API tools and resources via the MCP interface.
-
-declare namespace Simse {
-	function log(level: string, message: string): void;
-}
+export {};
 
 interface PluginConfig {
 	token?: string;
@@ -43,20 +40,20 @@ async function ghFetch(
 	return response.json();
 }
 
-function textResult(data: unknown) {
+function textResult(data: unknown): McpToolResult {
 	return {
-		content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+		content: [{ type: "text" as const, text: JSON.stringify(data, null, 2) }],
 	};
 }
 
-function errorResult(msg: string) {
+function errorResult(msg: string): McpToolResult {
 	return {
-		content: [{ type: "text", text: msg }],
+		content: [{ type: "text" as const, text: msg }],
 		isError: true,
 	};
 }
 
-globalThis.__simsePlugin = {
+__simsePlugin = {
 	kind: "mcp",
 
 	auth: [

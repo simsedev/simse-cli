@@ -1,27 +1,6 @@
 // Copilot ACP Provider Plugin
 // Uses @github/copilot-sdk for streaming chat completions.
-
-declare namespace Simse {
-	function sendDelta(sessionId: string, text: string): void;
-	function sendComplete(
-		sessionId: string,
-		usage?: { promptTokens: number; completionTokens: number } | null,
-	): void;
-	function log(level: string, message: string): void;
-}
-
-interface Message {
-	role: string;
-	content: string;
-}
-
-interface PromptOptions {
-	model?: string;
-	systemPrompt?: string;
-	temperature?: number;
-	topP?: number;
-	maxTokens?: number;
-}
+export {};
 
 interface ProviderConfig {
 	cliUrl?: string;
@@ -32,7 +11,7 @@ let client: any = null;
 let defaultModel = "gpt-4.1";
 const sessions: Map<string, any> = new Map();
 
-globalThis.__simsePlugin = {
+__simsePlugin = {
 	auth: { type: "sdk_managed", description: "Handled by @github/copilot-sdk" },
 
 	async initialize(config: ProviderConfig) {
@@ -86,12 +65,12 @@ globalThis.__simsePlugin = {
 
 	async prompt(
 		sessionId: string,
-		messages: Message[],
+		messages: PluginMessage[],
 		options: PromptOptions,
 	) {
 		let session = sessions.get(sessionId);
 		if (!session) {
-			await globalThis.__simsePlugin.newSession(sessionId, options);
+			await __simsePlugin.newSession!(sessionId, options as Record<string, unknown>);
 			session = sessions.get(sessionId);
 		}
 

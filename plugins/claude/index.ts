@@ -1,27 +1,6 @@
 // Claude ACP Provider Plugin
 // Translates ACP prompts to Anthropic Messages API calls with streaming.
-
-declare namespace Simse {
-	function sendDelta(sessionId: string, text: string): void;
-	function sendComplete(
-		sessionId: string,
-		usage?: { promptTokens: number; completionTokens: number } | null,
-	): void;
-	function log(level: string, message: string): void;
-}
-
-interface Message {
-	role: string;
-	content: string;
-}
-
-interface PromptOptions {
-	model?: string;
-	systemPrompt?: string;
-	temperature?: number;
-	topP?: number;
-	maxTokens?: number;
-}
+export {};
 
 interface ProviderConfig {
 	apiKey?: string;
@@ -53,7 +32,7 @@ function parseSSELines(text: string): Array<{ event: string; data: string }> {
 	return events;
 }
 
-globalThis.__simsePlugin = {
+__simsePlugin = {
 	auth: {
 		type: "api_key",
 		name: "ANTHROPIC_API_KEY",
@@ -92,7 +71,7 @@ globalThis.__simsePlugin = {
 
 	async prompt(
 		sessionId: string,
-		messages: Message[],
+		messages: PluginMessage[],
 		options: PromptOptions,
 	) {
 		const model = options.model ?? defaultModel;

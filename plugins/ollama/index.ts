@@ -1,36 +1,6 @@
 // Ollama ACP Provider Plugin
 // Calls Ollama's native /api/chat endpoint with streaming and tool calling.
-
-declare const globalThis: Record<string, unknown>;
-
-declare namespace Simse {
-	function sendDelta(sessionId: string, text: string): void;
-	function sendComplete(
-		sessionId: string,
-		usage?: { promptTokens: number; completionTokens: number } | null,
-	): void;
-	function log(level: string, message: string): void;
-}
-
-interface Message {
-	role: string;
-	content: string;
-}
-
-interface ToolDef {
-	name: string;
-	description: string;
-	parameters: Record<string, unknown>;
-}
-
-interface PromptOptions {
-	model?: string;
-	systemPrompt?: string;
-	temperature?: number;
-	topP?: number;
-	maxTokens?: number;
-	tools?: ToolDef[];
-}
+export {};
 
 interface ProviderConfig {
 	baseUrl?: string;
@@ -71,7 +41,7 @@ function formatToolCallsAsXml(
 let baseUrl = 'http://localhost:11434';
 let defaultModel = 'gpt-oss:latest';
 
-globalThis.__simsePlugin = {
+__simsePlugin = {
 	auth: { type: 'none' },
 
 	async initialize(config: ProviderConfig) {
@@ -113,7 +83,7 @@ globalThis.__simsePlugin = {
 
 	async prompt(
 		sessionId: string,
-		messages: Message[],
+		messages: PluginMessage[],
 		options: PromptOptions,
 	) {
 		const model = options.model ?? defaultModel;

@@ -1,43 +1,16 @@
 // Perplexity MCP Plugin
 // Provides a perplexity_search tool that calls the Perplexity Sonar API.
-
-declare namespace Simse {
-	function log(level: string, message: string): void;
-}
+export {};
 
 interface PluginConfig {
 	apiKey?: string;
 	defaultModel?: string;
 }
 
-interface ToolDef {
-	name: string;
-	description: string;
-	inputSchema: Record<string, unknown>;
-}
-
-interface ContentItem {
-	type: string;
-	text: string;
-}
-
-interface ToolResult {
-	content: ContentItem[];
-	isError?: boolean;
-}
-
-interface ResourceResult {
-	contents: Array<{
-		uri: string;
-		text?: string;
-		mimeType?: string;
-	}>;
-}
-
 let apiKey = "";
 let defaultModel = "sonar";
 
-const SEARCH_TOOL: ToolDef = {
+const SEARCH_TOOL: McpToolDef = {
 	name: "perplexity_search",
 	description:
 		"Search the web using Perplexity AI. Returns an AI-generated answer with citations.",
@@ -59,7 +32,7 @@ const SEARCH_TOOL: ToolDef = {
 	},
 };
 
-globalThis.__simsePlugin = {
+__simsePlugin = {
 	kind: "mcp",
 
 	auth: {
@@ -96,7 +69,7 @@ globalThis.__simsePlugin = {
 	async callTool(
 		name: string,
 		args: Record<string, unknown>,
-	): Promise<ToolResult> {
+	): Promise<McpToolResult> {
 		if (name !== "perplexity_search") {
 			return {
 				content: [{ type: "text", text: `Unknown tool: ${name}` }],
@@ -172,7 +145,7 @@ globalThis.__simsePlugin = {
 				data.choices?.[0]?.message?.content ?? "No answer returned.";
 			const citations: string[] = data.citations ?? [];
 
-			const content: ContentItem[] = [{ type: "text", text: answer }];
+			const content: Array<{ type: "text"; text: string }> = [{ type: "text", text: answer }];
 
 			if (citations.length > 0) {
 				const citationText = citations
@@ -201,7 +174,7 @@ globalThis.__simsePlugin = {
 		}
 	},
 
-	async readResource(_uri: string): Promise<ResourceResult> {
+	async readResource(_uri: string): Promise<McpResourceResult> {
 		return { contents: [] };
 	},
 
