@@ -1,6 +1,8 @@
 // Ollama ACP Provider Plugin
 // Calls Ollama's native /api/chat endpoint with streaming and tool calling.
 
+declare const globalThis: Record<string, unknown>;
+
 declare namespace Simse {
 	function sendDelta(sessionId: string, text: string): void;
 	function sendComplete(
@@ -67,7 +69,7 @@ function formatToolCallsAsXml(
 }
 
 let baseUrl = 'http://localhost:11434';
-let defaultModel = 'llama3.1';
+let defaultModel = 'gpt-oss:latest';
 
 globalThis.__simsePlugin = {
 	auth: { type: 'none' },
