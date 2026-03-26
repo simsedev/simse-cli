@@ -1,7 +1,7 @@
 // Ollama ACP Provider Plugin
 // Calls Ollama's native /api/chat endpoint with streaming and tool calling.
 
-import type { AcpPlugin, PluginMessage, PromptOptions, ToolDef, SimseHost } from '@simse/plugin-sdk';
+// Types: @simse/plugin-sdk (stripped at build time, see tsconfig paths)
 
 
 declare const Simse: SimseHost;

@@ -1,7 +1,7 @@
 // Copilot ACP Provider Plugin
 // Uses @github/copilot-sdk for streaming chat completions.
 
-import type { AcpPlugin, PluginMessage, PromptOptions, SimseHost } from '@simse/plugin-sdk';
+// Types: @simse/plugin-sdk (stripped at build time, see tsconfig paths)
 
 
 declare const Simse: SimseHost;

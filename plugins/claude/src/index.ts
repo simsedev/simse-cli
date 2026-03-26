@@ -1,7 +1,7 @@
 // Claude ACP Provider Plugin
 // Translates ACP prompts to Anthropic Messages API calls with streaming.
 
-import type { AcpPlugin, PluginMessage, PromptOptions, SimseHost } from '@simse/plugin-sdk';
+// Types: @simse/plugin-sdk (stripped at build time, see tsconfig paths)
 
 
 declare const Simse: SimseHost;

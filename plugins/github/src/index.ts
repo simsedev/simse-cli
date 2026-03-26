@@ -1,7 +1,7 @@
 // GitHub MCP Plugin
 // Provides GitHub REST API tools and resources via the MCP interface.
 
-import type { McpPlugin, McpToolResult, McpResourceResult, SimseHost } from '@simse/plugin-sdk';
+// Types: @simse/plugin-sdk (stripped at build time, see tsconfig paths)
 
 
 declare const Simse: SimseHost;

@@ -1,7 +1,7 @@
 // Perplexity MCP Plugin
 // Provides a perplexity_search tool that calls the Perplexity Sonar API.
 
-import type { McpPlugin, McpToolDef, McpToolResult, McpResourceResult, SimseHost } from '@simse/plugin-sdk';
+// Types: @simse/plugin-sdk (stripped at build time, see tsconfig paths)
 
 
 declare const Simse: SimseHost;
