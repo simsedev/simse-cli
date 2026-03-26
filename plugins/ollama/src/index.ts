@@ -53,9 +53,15 @@ let defaultModel = 'gpt-oss:latest';
 			const data = await healthResp.json();
 			const models = (data.models ?? []).map((m: any) => m.name as string);
 
+			// Auto-select first available model if configured default isn't installed
+			if (models.length > 0 && !models.includes(defaultModel)) {
+				defaultModel = models[0];
+				Simse.log('info', `Default model not found, using ${defaultModel}`);
+			}
+
 			Simse.log(
 				'info',
-				`Ollama plugin initialized (${models.length} models available)`,
+				`Ollama plugin initialized (${models.length} models, default: ${defaultModel})`,
 			);
 
 			return {
