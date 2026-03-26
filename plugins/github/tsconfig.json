@@ -7,10 +7,17 @@
 		"noEmit": true,
 		"skipLibCheck": true,
 		"esModuleInterop": true,
-		"lib": ["ES2022", "DOM"],
+		"lib": [
+			"ES2022",
+			"DOM"
+		],
 		"paths": {
-			"@simse/plugin-sdk": ["../plugin-sdk/src/index.ts"]
+			"@simse/plugin-sdk": [
+				"../../plugin-sdk/src/index.ts"
+			]
 		}
 	},
-	"include": ["src/**/*.ts"]
+	"include": [
+		"src/**/*.ts"
+	]
 }
