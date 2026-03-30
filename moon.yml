@@ -1,0 +1,12 @@
+language: "other"
+tags: ["cli"]
+
+workspace:
+  inheritedTasks:
+    exclude:
+      - 'lint'
+      - 'setup'
+      - 'build'
+      - 'dev'
+      - 'test'
+      - 'start'
