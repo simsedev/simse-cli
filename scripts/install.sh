@@ -1,6 +1,6 @@
 #!/bin/sh
 # simse installer
-# Usage: curl -fsSL https://raw.githubusercontent.com/simsedev/simse-cli/main/install.sh | sh
+# Usage: curl -fsSL https://cdn.simse.dev/install.sh | sh
 #
 # Installs the latest simse binary to /usr/local/bin (or ~/.local/bin if
 # /usr/local/bin is not writable).
@@ -101,22 +101,42 @@ download_and_install() {
 
     tar -xzf "${TMPDIR}/${FILENAME}" -C "$TMPDIR"
 
-    # Choose install location
-    if [ -w "$INSTALL_DIR" ]; then
-        TARGET="$INSTALL_DIR"
-    elif [ -w "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin" 2>/dev/null; then
-        TARGET="$HOME/.local/bin"
-    else
-        info "installing to ${INSTALL_DIR} (requires sudo)..."
-        sudo mv "${TMPDIR}/${BINARY_NAME}" "${INSTALL_DIR}/${BINARY_NAME}"
-        sudo chmod +x "${INSTALL_DIR}/${BINARY_NAME}"
-        info "simse ${VERSION} installed to ${INSTALL_DIR}/${BINARY_NAME}"
-        return
+    # Archive layout: bin/simse + share/simse/plugins/*
+    SRC_BIN="${TMPDIR}/bin/${BINARY_NAME}"
+    SRC_PLUGINS="${TMPDIR}/share/simse/plugins"
+    if [ ! -f "$SRC_BIN" ]; then
+        error "archive missing bin/${BINARY_NAME}"
     fi
 
-    mv "${TMPDIR}/${BINARY_NAME}" "${TARGET}/${BINARY_NAME}"
-    chmod +x "${TARGET}/${BINARY_NAME}"
+    # Choose install location. PREFIX is the parent of the bin dir; plugins
+    # go to PREFIX/share/simse/plugins so the binary's exe-relative lookup
+    # (<exe>/../share/simse/plugins) finds them.
+    if [ -w "$INSTALL_DIR" ]; then
+        TARGET="$INSTALL_DIR"
+        PREFIX="$(dirname "$INSTALL_DIR")"
+        SUDO=""
+    elif [ -w "$HOME/.local/bin" ] || mkdir -p "$HOME/.local/bin" 2>/dev/null; then
+        TARGET="$HOME/.local/bin"
+        PREFIX="$HOME/.local"
+        SUDO=""
+    else
+        info "installing to ${INSTALL_DIR} (requires sudo)..."
+        TARGET="$INSTALL_DIR"
+        PREFIX="$(dirname "$INSTALL_DIR")"
+        SUDO="sudo"
+    fi
+
+    $SUDO mv "$SRC_BIN" "${TARGET}/${BINARY_NAME}"
+    $SUDO chmod +x "${TARGET}/${BINARY_NAME}"
     info "simse ${VERSION} installed to ${TARGET}/${BINARY_NAME}"
+
+    if [ -d "$SRC_PLUGINS" ]; then
+        PLUGIN_DEST="${PREFIX}/share/simse/plugins"
+        $SUDO rm -rf "$PLUGIN_DEST"
+        $SUDO mkdir -p "${PREFIX}/share/simse"
+        $SUDO mv "$SRC_PLUGINS" "$PLUGIN_DEST"
+        info "plugins installed to ${PLUGIN_DEST}"
+    fi
 
     # Ensure target is in PATH; update shell profile if needed
     case ":$PATH:" in

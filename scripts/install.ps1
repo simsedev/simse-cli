@@ -1,5 +1,5 @@
 # simse installer for Windows
-# Usage: irm https://raw.githubusercontent.com/simsedev/simse-cli/main/install.ps1 | iex
+# Usage: irm https://cdn.simse.dev/install.ps1 | iex
 
 $ErrorActionPreference = "Stop"
 
@@ -85,7 +85,27 @@ if (-not (Test-Path $InstallDir)) {
     New-Item -ItemType Directory -Path $InstallDir -Force | Out-Null
 }
 
-Copy-Item -Path (Join-Path $TmpDir $BinaryName) -Destination (Join-Path $InstallDir $BinaryName) -Force
+$SrcBin = Join-Path $TmpDir "bin\$BinaryName"
+$SrcPlugins = Join-Path $TmpDir "share\simse\plugins"
+if (-not (Test-Path $SrcBin)) {
+    Write-Error "Archive missing bin\$BinaryName"
+    exit 1
+}
+
+Copy-Item -Path $SrcBin -Destination (Join-Path $InstallDir $BinaryName) -Force
+
+# Plugins -> <prefix>\share\simse\plugins, where <prefix> is the parent of
+# the bin dir, so the binary's <exe>\..\share\simse\plugins lookup finds them.
+if (Test-Path $SrcPlugins) {
+    $Prefix = Split-Path -Parent $InstallDir
+    $PluginDest = Join-Path $Prefix "share\simse\plugins"
+    if (Test-Path $PluginDest) {
+        Remove-Item -Recurse -Force $PluginDest
+    }
+    New-Item -ItemType Directory -Path (Split-Path -Parent $PluginDest) -Force | Out-Null
+    Copy-Item -Path $SrcPlugins -Destination $PluginDest -Recurse -Force
+    Write-Host "Plugins installed to $PluginDest" -ForegroundColor Green
+}
 
 # ---------------------------------------------------------------------------
 # Add to PATH if needed
