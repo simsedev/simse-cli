@@ -1,0 +1,100 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.os }}
+    env:
+      CORE_REPO_PAT: ${{ secrets.CORE_REPO_PAT }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: ubuntu-22.04,     target: x86_64-unknown-linux-gnu,  platform: linux-x86_64 }
+          - { os: ubuntu-22.04-arm, target: aarch64-unknown-linux-gnu, platform: linux-aarch64 }
+          - { os: macos-13,         target: x86_64-apple-darwin,       platform: darwin-x86_64 }
+          - { os: macos-14,         target: aarch64-apple-darwin,      platform: darwin-aarch64 }
+          - { os: windows-2022,     target: x86_64-pc-windows-msvc,    platform: windows-x86_64 }
+    steps:
+      - name: Checkout simse-cli
+        uses: actions/checkout@v4
+
+      - name: PAT absent — skip
+        if: env.CORE_REPO_PAT == ''
+        run: echo "::notice::CORE_REPO_PAT not provisioned — release build skipped."
+
+      - name: Read core ref
+        if: env.CORE_REPO_PAT != ''
+        id: coreref
+        shell: bash
+        run: echo "ref=$(tr -d '[:space:]' < CORE_REF)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout core
+        if: env.CORE_REPO_PAT != ''
+        uses: actions/checkout@v4
+        with:
+          repository: simsedev/core
+          ref: ${{ steps.coreref.outputs.ref }}
+          token: ${{ env.CORE_REPO_PAT }}
+          path: core
+
+      - name: Install Rust toolchain
+        if: env.CORE_REPO_PAT != ''
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Cache cargo
+        if: env.CORE_REPO_PAT != ''
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: core
+
+      - name: Build simse
+        if: env.CORE_REPO_PAT != ''
+        working-directory: core
+        run: cargo build --release --locked --features cli --bin simse --target ${{ matrix.target }}
+
+      - name: Assemble archive
+        if: env.CORE_REPO_PAT != ''
+        shell: bash
+        run: bash scripts/assemble-dist.sh "${{ matrix.target }}" "${{ matrix.platform }}"
+
+      - name: Upload archive artifact
+        if: env.CORE_REPO_PAT != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: simse-${{ matrix.platform }}
+          path: |
+            simse-${{ matrix.platform }}.tar.gz
+            simse-${{ matrix.platform }}.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-22.04
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download all archives
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/simse-*.tar.gz
+            artifacts/simse-*.zip
+          fail_on_unmatched_files: true
+          generate_release_notes: true
