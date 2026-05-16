@@ -1,0 +1,17 @@
+{
+	"name": "@simse/cli",
+	"private": true,
+	"version": "0.2.0",
+	"type": "module",
+	"workspaces": [
+		"plugin-sdk",
+		"plugins/claude",
+		"plugins/copilot",
+		"plugins/ollama",
+		"plugins/github",
+		"plugins/perplexity"
+	],
+	"devDependencies": {
+		"typescript": "^5.7.2"
+	}
+}

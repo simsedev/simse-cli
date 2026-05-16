@@ -1,0 +1,66 @@
+{
+  "lockfileVersion": 1,
+  "configVersion": 1,
+  "workspaces": {
+    "": {
+      "name": "@simse/cli",
+      "devDependencies": {
+        "typescript": "^5.7.2",
+      },
+    },
+    "plugin-sdk": {
+      "name": "@simse/plugin-sdk",
+      "version": "0.1.0",
+    },
+    "plugins/claude": {
+      "name": "@simse/plugin-claude",
+      "version": "0.1.0",
+      "dependencies": {
+        "@simse/plugin-sdk": "workspace:*",
+      },
+    },
+    "plugins/copilot": {
+      "name": "@simse/plugin-copilot",
+      "version": "0.1.0",
+      "dependencies": {
+        "@simse/plugin-sdk": "workspace:*",
+      },
+    },
+    "plugins/github": {
+      "name": "@simse/plugin-github",
+      "version": "0.1.0",
+      "dependencies": {
+        "@simse/plugin-sdk": "workspace:*",
+      },
+    },
+    "plugins/ollama": {
+      "name": "@simse/plugin-ollama",
+      "version": "0.1.0",
+      "dependencies": {
+        "@simse/plugin-sdk": "workspace:*",
+      },
+    },
+    "plugins/perplexity": {
+      "name": "@simse/plugin-perplexity",
+      "version": "0.1.0",
+      "dependencies": {
+        "@simse/plugin-sdk": "workspace:*",
+      },
+    },
+  },
+  "packages": {
+    "@simse/plugin-claude": ["@simse/plugin-claude@workspace:plugins/claude"],
+
+    "@simse/plugin-copilot": ["@simse/plugin-copilot@workspace:plugins/copilot"],
+
+    "@simse/plugin-github": ["@simse/plugin-github@workspace:plugins/github"],
+
+    "@simse/plugin-ollama": ["@simse/plugin-ollama@workspace:plugins/ollama"],
+
+    "@simse/plugin-perplexity": ["@simse/plugin-perplexity@workspace:plugins/perplexity"],
+
+    "@simse/plugin-sdk": ["@simse/plugin-sdk@workspace:plugin-sdk"],
+
+    "typescript": ["typescript@5.9.3", "", { "bin": { "tsc": "bin/tsc", "tsserver": "bin/tsserver" } }, "sha512-jl1vZzPDinLr9eUt3J/t7V6FgNEw9QjvBPdysz9KfQDD41fQrC2Y4vKQdiaUpFT4bXlb1RHhLpp8wtm6M5TgSw=="],
+  }
+}
