@@ -1,12 +1,36 @@
-language: "other"
-tags: ["cli"]
+language: 'other'
+tags: ['cli']
 
 workspace:
   inheritedTasks:
     exclude:
       - 'lint'
       - 'setup'
+      - 'test'
       - 'build'
       - 'dev'
-      - 'test'
       - 'start'
+      - 'format-check'
+
+tasks:
+  setup:
+    command: 'bun install'
+    inputs:
+      - 'package.json'
+      - 'bun.lock'
+      - 'plugin-sdk/package.json'
+      - 'plugins/*/package.json'
+  lint:
+    command: 'bash scripts/validate-plugins.sh'
+    inputs:
+      - 'plugins/*/plugin.json'
+      - 'scripts/validate-plugins.sh'
+  test:
+    command: 'bash scripts/typecheck.sh'
+    deps:
+      - 'simse-cli:setup'
+    inputs:
+      - 'plugin-sdk/src/**/*'
+      - 'plugins/**/*.ts'
+      - 'plugins/**/tsconfig.json'
+      - 'scripts/typecheck.sh'
