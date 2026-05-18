@@ -9,6 +9,11 @@
 # Expects the core checkout at ./core and a finished build at
 # core/target/<triple>/release/simse[.exe].
 # Produces ./simse-<platform-label>.{tar.gz,zip} at the repo root.
+#
+# The archive ships ONLY the `simse` binary (the plugin engine is built
+# into it). First-party plugins are NOT bundled — they are fetched on
+# demand when a user enables one. Bundling them would balloon the archive
+# (e.g. the copilot plugin's SDK pulls the entire GitHub Copilot CLI).
 set -euo pipefail
 
 TARGET="$1"
@@ -30,35 +35,11 @@ fi
 
 DIST="dist"
 rm -rf "$DIST" "simse-$PLATFORM.tar.gz" "simse-$PLATFORM.zip"
-mkdir -p "$DIST/bin" "$DIST/share/simse"
+mkdir -p "$DIST/bin"
 
 cp "$BIN" "$DIST/bin/simse$EXT"
-cp -R plugins "$DIST/share/simse/plugins"
 cp LICENSE "$DIST/LICENSE"
 cp README.md "$DIST/README.md"
-
-# Drop dev-only artifacts from the bundled plugins.
-find "$DIST/share/simse/plugins" -name node_modules -type d -prune -exec rm -rf {} +
-
-# Copilot is the only plugin with an external npm dependency: it loads
-# @github/copilot-sdk at runtime via dynamic import. Install that dependency
-# tree into the dist plugin so the shipped copilot plugin can resolve it.
-# (The other plugins rely solely on host-injected SDK globals.)
-COPILOT="$DIST/share/simse/plugins/copilot"
-if [ -f "$COPILOT/package.json" ]; then
-	# Strip the workspace-only SDK dep so an isolated install resolves.
-	MANIFEST="$COPILOT/package.json" bun -e '
-		const fs = require("fs");
-		const j = JSON.parse(fs.readFileSync(process.env.MANIFEST, "utf8"));
-		if (j.dependencies) delete j.dependencies["@simse/plugin-sdk"];
-		fs.writeFileSync(process.env.MANIFEST, JSON.stringify(j, null, 2));
-	'
-	( cd "$COPILOT" && bun install --production --no-save )
-	rm -f "$COPILOT/bun.lock" "$COPILOT/bun.lockb"
-fi
-
-find "$DIST/share/simse/plugins" \
-	\( -name 'tsconfig.json' -o -name 'package.json' \) -delete
 
 case "$PLATFORM" in
 	windows-*)
