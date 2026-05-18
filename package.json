@@ -7,7 +7,9 @@
 		"plugin-sdk",
 		"plugins/claude",
 		"plugins/copilot",
+		"plugins/gemini",
 		"plugins/ollama",
+		"plugins/openai",
 		"plugins/github",
 		"plugins/perplexity"
 	],

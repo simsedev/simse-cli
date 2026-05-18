@@ -28,9 +28,11 @@ simse-cli/
 
 | Plugin | Kind | Description |
 | --- | --- | --- |
-| `claude` | acp | Anthropic Claude provider via Messages API |
+| `claude` | acp | Anthropic Claude provider via the Anthropic SDK |
 | `copilot` | acp | GitHub Copilot provider via SDK |
+| `gemini` | acp | Google Gemini provider via the @google/genai SDK |
 | `ollama` | acp | Local Ollama server provider |
+| `openai` | acp | OpenAI provider via the OpenAI SDK |
 | `github` | mcp | GitHub REST API tools and resources |
 | `perplexity` | mcp | Perplexity Sonar web search tool |
 | `code-review` | skill | Structured code review with checklist |

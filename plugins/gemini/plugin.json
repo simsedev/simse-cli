@@ -1,0 +1,7 @@
+{
+  "name": "gemini",
+  "kind": "acp",
+  "version": "0.1.0",
+  "description": "Google Gemini provider via the official @google/genai SDK",
+  "main": "src/index.ts"
+}

@@ -1,0 +1,7 @@
+{
+  "name": "openai",
+  "kind": "acp",
+  "version": "0.1.0",
+  "description": "OpenAI provider via the official OpenAI SDK",
+  "main": "src/index.ts"
+}

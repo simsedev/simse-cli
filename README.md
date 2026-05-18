@@ -16,9 +16,11 @@ irm https://cdn.simse.dev/install.ps1 | iex
 
 | Plugin | Kind | Description |
 |--------|------|-------------|
-| `claude` | ACP | Anthropic Claude provider via Messages API |
+| `claude` | ACP | Anthropic Claude provider via the Anthropic SDK |
 | `copilot` | ACP | GitHub Copilot provider via SDK |
+| `gemini` | ACP | Google Gemini provider via the @google/genai SDK |
 | `ollama` | ACP | Local Ollama server provider |
+| `openai` | ACP | OpenAI provider via the OpenAI SDK |
 | `github` | MCP | GitHub REST API tools and resources |
 | `perplexity` | MCP | Perplexity Sonar web search tool |
 | `code-review` | Skill | Structured code review with checklist |
@@ -40,7 +42,9 @@ plugin-sdk/       @simse/plugin-sdk — shared TypeScript interfaces
 plugins/
   claude/         Anthropic Claude provider
   copilot/        GitHub Copilot provider
+  gemini/         Google Gemini provider
   ollama/         Local Ollama provider
+  openai/         OpenAI provider
   github/         GitHub REST API tools
   perplexity/     Perplexity web search
   code-review/    Code review skill

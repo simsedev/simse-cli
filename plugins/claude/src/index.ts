@@ -1,8 +1,8 @@
 // Claude ACP Provider Plugin
-// Translates ACP prompts to Anthropic Messages API calls with streaming.
+// Streams Anthropic Messages API responses via the official @anthropic-ai/sdk.
 
-// Types: @simse/plugin-sdk (stripped at build time, see tsconfig paths)
-
+// Types: @simse/plugin-sdk (stripped at build time, see tsconfig paths).
+// @anthropic-ai/sdk is loaded at runtime via dynamic import (see the .d.ts).
 
 declare const Simse: SimseHost;
 declare const Deno: { env: { get(key: string): string | undefined; set(key: string, value: string): void } };
@@ -16,26 +16,6 @@ interface ProviderConfig {
 let apiKey = "";
 let baseUrl = "https://api.anthropic.com";
 let defaultModel = "claude-sonnet-4-6";
-
-function parseSSELines(text: string): Array<{ event: string; data: string }> {
-	const events: Array<{ event: string; data: string }> = [];
-	let currentEvent = "";
-	let currentData = "";
-
-	for (const line of text.split("\n")) {
-		if (line.startsWith("event: ")) {
-			currentEvent = line.slice(7);
-		} else if (line.startsWith("data: ")) {
-			currentData = line.slice(6);
-		} else if (line === "" && currentEvent) {
-			events.push({ event: currentEvent, data: currentData });
-			currentEvent = "";
-			currentData = "";
-		}
-	}
-
-	return events;
-}
 
 /** Convert core ToolDef[] to Anthropic's Messages API tool format. */
 function toAnthropicTools(
@@ -90,131 +70,76 @@ function toAnthropicTools(
 		messages: PluginMessage[],
 		options: PromptOptions,
 	) {
+		const Anthropic = (await import("@anthropic-ai/sdk")).default;
+		const client = new Anthropic({ apiKey, baseURL: baseUrl });
+
 		const model = options.model ?? defaultModel;
 		const maxTokens = options.maxTokens ?? 8192;
 
-		const body: Record<string, unknown> = {
+		const params: Record<string, unknown> = {
 			model,
 			max_tokens: maxTokens,
 			messages: messages
 				.filter((m) => m.role !== "system")
 				.map((m) => ({ role: m.role, content: m.content })),
-			stream: true,
 		};
 
-		const systemMsg = messages.find((m) => m.role === "system");
-		if (options.systemPrompt) {
-			body.system = options.systemPrompt;
-		} else if (systemMsg) {
-			body.system = systemMsg.content;
+		// System prompt as a cache-controlled text block: repeated turns in an
+		// agentic loop reuse the cached prefix instead of re-billing it.
+		const systemText =
+			options.systemPrompt ??
+			messages.find((m) => m.role === "system")?.content;
+		if (systemText) {
+			params.system = [
+				{
+					type: "text",
+					text: systemText,
+					cache_control: { type: "ephemeral" },
+				},
+			];
 		}
 
-		if (options.temperature !== undefined)
-			body.temperature = options.temperature;
-		if (options.topP !== undefined) body.top_p = options.topP;
+		// temperature / top_p are rejected by Opus 4.7 — only forward them for
+		// models that still accept sampling parameters.
+		if (!model.includes("opus-4-7")) {
+			if (options.temperature !== undefined) {
+				params.temperature = options.temperature;
+			}
+			if (options.topP !== undefined) {
+				params.top_p = options.topP;
+			}
+		}
 
 		// Pass tools in Anthropic's native format if provided.
 		const tools = options.tools ?? [];
 		if (tools.length > 0) {
-			body.tools = toAnthropicTools(tools);
+			params.tools = toAnthropicTools(tools);
 		}
 
-		const response = await fetch(`${baseUrl}/v1/messages`, {
-			method: "POST",
-			headers: {
-				"x-api-key": apiKey,
-				"anthropic-version": "2023-06-01",
-				"content-type": "application/json",
-			},
-			body: JSON.stringify(body),
+		// Stream text deltas to the UI as they arrive; the SDK accumulates the
+		// full message for us.
+		const stream = client.messages.stream(params);
+		stream.on("text", (delta: string) => {
+			Simse.sendDelta(sessionId, delta);
 		});
 
-		if (!response.ok) {
-			const errorText = await response.text();
-			throw new Error(
-				`Anthropic API error ${response.status}: ${errorText}`,
-			);
-		}
+		const final = await stream.finalMessage();
 
-		const reader = response.body!.getReader();
-		const decoder = new TextDecoder();
-		let buffer = "";
-		let promptTokens = 0;
-		let completionTokens = 0;
-		let stopReason = "end_turn";
-
-		// Tracks streaming tool_use content blocks by their block index.
-		// Anthropic streams a tool call's input as incremental input_json_delta
-		// fragments; they are accumulated here and flushed on content_block_stop.
-		const toolBlocks = new Map<
-			number,
-			{ id: string; name: string; json: string }
-		>();
-
-		while (true) {
-			const { done, value } = await reader.read();
-			if (done) break;
-
-			buffer += decoder.decode(value, { stream: true });
-
-			const lastNewline = buffer.lastIndexOf("\n\n");
-			if (lastNewline === -1) continue;
-
-			const complete = buffer.slice(0, lastNewline + 2);
-			buffer = buffer.slice(lastNewline + 2);
-
-			for (const event of parseSSELines(complete)) {
-				if (event.event === "content_block_start") {
-					const data = JSON.parse(event.data);
-					if (data.content_block?.type === "tool_use") {
-						toolBlocks.set(data.index, {
-							id: data.content_block.id,
-							name: data.content_block.name,
-							json: "",
-						});
-					}
-				} else if (event.event === "content_block_delta") {
-					const data = JSON.parse(event.data);
-					if (data.delta?.type === "text_delta" && data.delta.text) {
-						Simse.sendDelta(sessionId, data.delta.text);
-					} else if (data.delta?.type === "input_json_delta") {
-						const block = toolBlocks.get(data.index);
-						if (block) block.json += data.delta.partial_json ?? "";
-					}
-				} else if (event.event === "content_block_stop") {
-					const data = JSON.parse(event.data);
-					const block = toolBlocks.get(data.index);
-					if (block) {
-						let args: unknown = {};
-						try {
-							args = block.json ? JSON.parse(block.json) : {};
-						} catch {
-							args = {};
-						}
-						// Emit a <tool_use> block for the core tool-call parser.
-						const payload = JSON.stringify({
-							id: block.id,
-							name: block.name,
-							arguments: args,
-						});
-						Simse.sendDelta(
-							sessionId,
-							`<tool_use>\n${payload}\n</tool_use>`,
-						);
-					}
-				} else if (event.event === "message_delta") {
-					const data = JSON.parse(event.data);
-					if (data.delta?.stop_reason)
-						stopReason = data.delta.stop_reason;
-					if (data.usage)
-						completionTokens = data.usage.output_tokens ?? 0;
-				} else if (event.event === "message_start") {
-					const data = JSON.parse(event.data);
-					if (data.message?.usage)
-						promptTokens = data.message.usage.input_tokens ?? 0;
-				}
+		// Emit any tool_use blocks as <tool_use> blocks for the core parser.
+		for (const block of final.content ?? []) {
+			if (block.type === "tool_use") {
+				const payload = JSON.stringify({
+					id: block.id,
+					name: block.name,
+					arguments: (block as any).input ?? {},
+				});
+				Simse.sendDelta(sessionId, `<tool_use>\n${payload}\n</tool_use>`);
 			}
 		}
+
+		const promptTokens = final.usage?.input_tokens ?? 0;
+		const completionTokens = final.usage?.output_tokens ?? 0;
+		const stopReason = final.stop_reason ?? "end_turn";
 
 		Simse.sendComplete(sessionId, { promptTokens, completionTokens });
 
