@@ -1,13 +1,20 @@
 #!/usr/bin/env bash
 # Typecheck the plugin SDK and every TypeScript plugin.
 set -euo pipefail
+shopt -s nullglob
 
 cd "$(dirname "$0")/.."
 
-PLUGINS="plugin-sdk plugins/claude plugins/copilot plugins/ollama plugins/github plugins/perplexity"
+# The SDK plus every plugin that ships a tsconfig.json (discovered, so a new
+# TypeScript plugin is covered without editing this list).
+DIRS=("plugin-sdk")
+for tsconfig in plugins/*/tsconfig.json; do
+	DIRS+=("$(dirname "$tsconfig")")
+done
+
 fail=0
 
-for dir in $PLUGINS; do
+for dir in "${DIRS[@]}"; do
 	echo "typecheck: $dir"
 	if ! (cd "$dir" && bunx tsc -p tsconfig.json); then
 		echo "typecheck FAILED: $dir" >&2

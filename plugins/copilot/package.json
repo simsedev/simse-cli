@@ -5,6 +5,7 @@
 	"type": "module",
 	"main": "src/index.ts",
 	"dependencies": {
-		"@simse/plugin-sdk": "workspace:*"
+		"@simse/plugin-sdk": "workspace:*",
+		"@github/copilot-sdk": "^1.0.0-beta.4"
 	}
 }

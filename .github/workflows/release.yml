@@ -9,8 +9,28 @@ permissions:
   contents: write
 
 jobs:
+  check:
+    name: Validate plugins
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout simse-cli
+        uses: actions/checkout@v4
+
+      - name: Install bun
+        uses: oven-sh/setup-bun@v2
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate plugin manifests
+        run: bash scripts/validate-plugins.sh
+
+      - name: Typecheck SDK and plugins
+        run: bash scripts/typecheck.sh
+
   build:
     name: Build ${{ matrix.platform }}
+    needs: check
     runs-on: ${{ matrix.os }}
     env:
       CORE_REPO_PAT: ${{ secrets.CORE_REPO_PAT }}
@@ -23,6 +43,7 @@ jobs:
           - { os: macos-13,         target: x86_64-apple-darwin,       platform: darwin-x86_64 }
           - { os: macos-14,         target: aarch64-apple-darwin,      platform: darwin-aarch64 }
           - { os: windows-2022,     target: x86_64-pc-windows-msvc,    platform: windows-x86_64 }
+          - { os: windows-11-arm,   target: aarch64-pc-windows-msvc,   platform: windows-aarch64 }
     steps:
       - name: Checkout simse-cli
         uses: actions/checkout@v4
@@ -63,6 +84,10 @@ jobs:
         working-directory: core
         run: cargo build --release --locked --features cli --bin simse --target ${{ matrix.target }}
 
+      - name: Install bun
+        if: env.CORE_REPO_PAT != ''
+        uses: oven-sh/setup-bun@v2
+
       - name: Assemble archive
         if: env.CORE_REPO_PAT != ''
         shell: bash
@@ -90,11 +115,16 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      - name: Generate checksums
+        working-directory: artifacts
+        run: sha256sum simse-* > SHA256SUMS
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             artifacts/simse-*.tar.gz
             artifacts/simse-*.zip
+            artifacts/SHA256SUMS
           fail_on_unmatched_files: true
           generate_release_notes: true

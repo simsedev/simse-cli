@@ -28,3 +28,8 @@ not maintained — upgrade via the install script.
 GitHub Releases. Inspect a script before piping it to a shell:
 
     curl -fsSL https://cdn.simse.dev/install.sh | less
+
+Each release publishes a `SHA256SUMS` file alongside the archives. The
+install scripts download it and verify the archive's SHA-256 before
+extracting; a mismatch aborts the install. Releases predating `SHA256SUMS`
+fall back to a warning.

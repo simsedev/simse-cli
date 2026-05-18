@@ -15,7 +15,7 @@ interface ProviderConfig {
 
 let apiKey = "";
 let baseUrl = "https://api.anthropic.com";
-let defaultModel = "claude-sonnet-4-20250514";
+let defaultModel = "claude-sonnet-4-6";
 
 function parseSSELines(text: string): Array<{ event: string; data: string }> {
 	const events: Array<{ event: string; data: string }> = [];
@@ -35,6 +35,17 @@ function parseSSELines(text: string): Array<{ event: string; data: string }> {
 	}
 
 	return events;
+}
+
+/** Convert core ToolDef[] to Anthropic's Messages API tool format. */
+function toAnthropicTools(
+	tools: ToolDef[],
+): Array<{ name: string; description: string; input_schema: Record<string, unknown> }> {
+	return tools.map((t) => ({
+		name: t.name,
+		description: t.description,
+		input_schema: t.parameters,
+	}));
 }
 
 (globalThis as any).__simsePlugin = ({
@@ -61,10 +72,10 @@ function parseSSELines(text: string): Array<{ event: string; data: string }> {
 
 		return {
 			name: "claude",
-			version: "1.0.0",
+			version: "0.1.0",
 			models: [
-				"claude-sonnet-4-20250514",
-				"claude-opus-4-20250514",
+				"claude-opus-4-7",
+				"claude-sonnet-4-6",
 				"claude-haiku-4-5-20251001",
 			],
 		};
@@ -102,6 +113,12 @@ function parseSSELines(text: string): Array<{ event: string; data: string }> {
 			body.temperature = options.temperature;
 		if (options.topP !== undefined) body.top_p = options.topP;
 
+		// Pass tools in Anthropic's native format if provided.
+		const tools = options.tools ?? [];
+		if (tools.length > 0) {
+			body.tools = toAnthropicTools(tools);
+		}
+
 		const response = await fetch(`${baseUrl}/v1/messages`, {
 			method: "POST",
 			headers: {
@@ -126,6 +143,14 @@ function parseSSELines(text: string): Array<{ event: string; data: string }> {
 		let completionTokens = 0;
 		let stopReason = "end_turn";
 
+		// Tracks streaming tool_use content blocks by their block index.
+		// Anthropic streams a tool call's input as incremental input_json_delta
+		// fragments; they are accumulated here and flushed on content_block_stop.
+		const toolBlocks = new Map<
+			number,
+			{ id: string; name: string; json: string }
+		>();
+
 		while (true) {
 			const { done, value } = await reader.read();
 			if (done) break;
@@ -139,10 +164,43 @@ function parseSSELines(text: string): Array<{ event: string; data: string }> {
 			buffer = buffer.slice(lastNewline + 2);
 
 			for (const event of parseSSELines(complete)) {
-				if (event.event === "content_block_delta") {
+				if (event.event === "content_block_start") {
+					const data = JSON.parse(event.data);
+					if (data.content_block?.type === "tool_use") {
+						toolBlocks.set(data.index, {
+							id: data.content_block.id,
+							name: data.content_block.name,
+							json: "",
+						});
+					}
+				} else if (event.event === "content_block_delta") {
 					const data = JSON.parse(event.data);
 					if (data.delta?.type === "text_delta" && data.delta.text) {
 						Simse.sendDelta(sessionId, data.delta.text);
+					} else if (data.delta?.type === "input_json_delta") {
+						const block = toolBlocks.get(data.index);
+						if (block) block.json += data.delta.partial_json ?? "";
+					}
+				} else if (event.event === "content_block_stop") {
+					const data = JSON.parse(event.data);
+					const block = toolBlocks.get(data.index);
+					if (block) {
+						let args: unknown = {};
+						try {
+							args = block.json ? JSON.parse(block.json) : {};
+						} catch {
+							args = {};
+						}
+						// Emit a <tool_use> block for the core tool-call parser.
+						const payload = JSON.stringify({
+							id: block.id,
+							name: block.name,
+							arguments: args,
+						});
+						Simse.sendDelta(
+							sessionId,
+							`<tool_use>\n${payload}\n</tool_use>`,
+						);
 					}
 				} else if (event.event === "message_delta") {
 					const data = JSON.parse(event.data);

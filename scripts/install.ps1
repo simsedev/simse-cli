@@ -52,6 +52,41 @@ try {
 }
 
 # ---------------------------------------------------------------------------
+# Verify checksum
+# ---------------------------------------------------------------------------
+# A missing SHA256SUMS (older releases) downgrades to a warning; a
+# present-but-mismatched checksum is always fatal.
+
+$SumsUrl = "https://github.com/$Repo/releases/download/$Version/SHA256SUMS"
+$SumsFile = Join-Path $TmpDir "SHA256SUMS"
+try {
+    Invoke-WebRequest -Uri $SumsUrl -OutFile $SumsFile -UseBasicParsing
+} catch {
+    Write-Host "SHA256SUMS not available - skipping checksum verification" -ForegroundColor Yellow
+    $SumsFile = $null
+}
+
+if ($SumsFile) {
+    $Expected = $null
+    foreach ($Line in Get-Content $SumsFile) {
+        $Parts = $Line -split '\s+', 2
+        if ($Parts.Count -eq 2 -and $Parts[1].Trim() -eq $FileName) {
+            $Expected = $Parts[0].Trim().ToLower()
+        }
+    }
+    if ($Expected) {
+        $Actual = (Get-FileHash -Path $TmpFile -Algorithm SHA256).Hash.ToLower()
+        if ($Actual -ne $Expected) {
+            Write-Error "Checksum mismatch for ${FileName}: expected $Expected, got $Actual"
+            exit 1
+        }
+        Write-Host "Checksum verified" -ForegroundColor Green
+    } else {
+        Write-Host "No checksum entry for $FileName - skipping verification" -ForegroundColor Yellow
+    }
+}
+
+# ---------------------------------------------------------------------------
 # Extract and install
 # ---------------------------------------------------------------------------
 

@@ -66,7 +66,7 @@ let defaultModel = 'gpt-oss:latest';
 
 			return {
 				name: 'ollama',
-				version: '1.0.0',
+				version: '0.1.0',
 				models: models.length > 0 ? models : [defaultModel],
 			};
 		} catch (e) {
@@ -76,7 +76,7 @@ let defaultModel = 'gpt-oss:latest';
 			);
 			return {
 				name: 'ollama',
-				version: '1.0.0',
+				version: '0.1.0',
 				models: [defaultModel],
 			};
 		}

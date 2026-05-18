@@ -14,6 +14,7 @@ interface PluginConfig {
 
 let token = "";
 let baseUrl = "https://api.github.com";
+let registeredTools: McpToolDef[] = [];
 
 function headers(): Record<string, string> {
 	const h: Record<string, string> = {
@@ -61,24 +62,14 @@ function errorResult(msg: string): McpToolResult {
 (globalThis as any).__simsePlugin = ({
 	kind: "mcp",
 
-	auth: [
-		{
-			type: "oauth",
-			provider: "github",
-			clientId: "Iv1.xxxxxxxx",
-			scopes: ["repo", "read:org"],
-			deviceAuthUrl: "https://github.com/login/device/code",
-			tokenUrl: "https://github.com/login/oauth/access_token",
-			envVar: "GITHUB_TOKEN",
-		},
-		{
-			type: "api_key",
-			name: "GITHUB_TOKEN",
-			description: "GitHub personal access token (fallback if OAuth unavailable)",
-			envVar: "GITHUB_TOKEN",
-			required: false,
-		},
-	],
+	auth: {
+		type: "api_key",
+		name: "GITHUB_TOKEN",
+		description:
+			"GitHub personal access token (optional — unauthenticated requests have lower rate limits)",
+		envVar: "GITHUB_TOKEN",
+		required: false,
+	},
 
 	async initialize(config: PluginConfig) {
 		token = config.token ?? (config as any).__auth?.token ?? Deno.env.get("GITHUB_TOKEN") ?? "";
@@ -93,9 +84,9 @@ function errorResult(msg: string): McpToolResult {
 
 		Simse.log("info", `GitHub MCP plugin initialized (baseUrl: ${baseUrl})`);
 
-		return {
+		const info: PluginInfo = {
 			name: "github",
-			version: "1.0.0",
+			version: "0.1.0",
 			tools: [
 				{
 					name: "github_search_repos",
@@ -226,11 +217,13 @@ function errorResult(msg: string): McpToolResult {
 				},
 			],
 		};
+
+		registeredTools = info.tools ?? [];
+		return info;
 	},
 
 	tools() {
-		// Tools are declared in initialize; this satisfies the McpPlugin interface.
-		return [];
+		return registeredTools;
 	},
 
 	async callTool(name: string, args: Record<string, unknown>) {

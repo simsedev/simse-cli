@@ -84,6 +84,49 @@ remove_old_versions() {
     done
 }
 
+verify_checksum() {
+    # Verify the downloaded archive against the release SHA256SUMS file.
+    # Missing tooling or a missing SHA256SUMS (older releases) downgrades to a
+    # warning; a present-but-mismatched checksum is always fatal.
+    _dir="$1"
+    _file="$2"
+    _sums_url="https://github.com/${REPO}/releases/download/${VERSION}/SHA256SUMS"
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        _sha="sha256sum"
+    elif command -v shasum >/dev/null 2>&1; then
+        _sha="shasum -a 256"
+    else
+        info "no sha256 tool available — skipping checksum verification"
+        return 0
+    fi
+
+    if command -v curl >/dev/null 2>&1; then
+        curl -fsSL "$_sums_url" -o "${_dir}/SHA256SUMS" 2>/dev/null || {
+            info "SHA256SUMS not available — skipping checksum verification"
+            return 0
+        }
+    else
+        wget -q "$_sums_url" -O "${_dir}/SHA256SUMS" 2>/dev/null || {
+            info "SHA256SUMS not available — skipping checksum verification"
+            return 0
+        }
+    fi
+
+    _expected="$(grep "  ${_file}\$" "${_dir}/SHA256SUMS" | awk '{print $1}')"
+    if [ -z "$_expected" ]; then
+        info "no checksum entry for ${_file} — skipping verification"
+        return 0
+    fi
+
+    _actual="$(cd "$_dir" && $_sha "$_file" | awk '{print $1}')"
+    if [ "$_expected" != "$_actual" ]; then
+        error "checksum mismatch for ${_file}: expected ${_expected}, got ${_actual}"
+    fi
+
+    info "checksum verified"
+}
+
 download_and_install() {
     FILENAME="simse-${PLATFORM}.tar.gz"
     URL="https://github.com/${REPO}/releases/download/${VERSION}/${FILENAME}"
@@ -99,6 +142,8 @@ download_and_install() {
         wget -q "$URL" -O "${TMPDIR}/${FILENAME}"
     fi
 
+    verify_checksum "$TMPDIR" "$FILENAME"
+
     tar -xzf "${TMPDIR}/${FILENAME}" -C "$TMPDIR"
 
     # Archive layout: bin/simse + share/simse/plugins/*
@@ -107,6 +152,10 @@ download_and_install() {
     if [ ! -f "$SRC_BIN" ]; then
         error "archive missing bin/${BINARY_NAME}"
     fi
+
+    # Download verified — only now remove old versions, so a failed download
+    # never leaves the system with no simse at all.
+    remove_old_versions
 
     # Choose install location. PREFIX is the parent of the bin dir; plugins
     # go to PREFIX/share/simse/plugins so the binary's exe-relative lookup
@@ -165,7 +214,6 @@ download_and_install() {
 main() {
     detect_platform
     get_latest_version
-    remove_old_versions
     download_and_install
     info "run 'simse' to get started"
 }

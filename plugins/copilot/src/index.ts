@@ -40,7 +40,7 @@ const plugin: AcpPlugin = {
 
 		return {
 			name: "copilot",
-			version: "1.0.0",
+			version: "0.1.0",
 			models: ["gpt-4.1", "gpt-5", "claude-sonnet-4"],
 		};
 	},

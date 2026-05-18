@@ -28,9 +28,9 @@ const SEARCH_TOOL: McpToolDef = {
 			},
 			focus: {
 				type: "string",
-				enum: ["web", "academic", "news"],
+				enum: ["web", "academic"],
 				description:
-					"Optional search focus area. Defaults to general web search.",
+					"Optional search focus. 'academic' restricts to scholarly sources; omit or 'web' for general search.",
 			},
 		},
 		required: ["query"],
@@ -114,8 +114,10 @@ const SEARCH_TOOL: McpToolDef = {
 				],
 			};
 
-			if (focus) {
-				body.search_focus = focus;
+			// Perplexity exposes an 'academic' search mode; general web search
+			// is the default when search_mode is omitted.
+			if (focus === "academic") {
+				body.search_mode = "academic";
 			}
 
 			Simse.log("info", `Perplexity search: "${query}"`);

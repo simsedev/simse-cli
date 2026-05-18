@@ -10,5 +10,6 @@ case "$FILE" in
     *.ts|*.tsx|*.js|*.jsx) npx biome format --write "$FILE" 2>/dev/null ;;
     *.py)     python3 -m black "$FILE" 2>/dev/null ;;
     *.go)     gofmt -w "$FILE" 2>/dev/null ;;
-    *.json)   python3 -m json.tool "$FILE" > "$FILE.tmp" && mv "$FILE.tmp" "$FILE" 2>/dev/null ;;
+    *.json)   python3 -m json.tool "$FILE" > "$FILE.tmp" 2>/dev/null \
+                  && mv "$FILE.tmp" "$FILE" || rm -f "$FILE.tmp" ;;
 esac
