@@ -7,6 +7,10 @@ versions track the `v*` git tags that trigger a release build.
 ## [Unreleased]
 
 ### Added
+- `CORE_REF` advanced to the simse-cli local-runtime build: host-backed
+  sandbox (local shell + disk object store + vgit), cloud-served memory
+  tools, in-process sub-agents (`subagent_spawn` / `subagent_delegate`),
+  hardened DuckDuckGo web search, and a `now` + todo/task tool surface.
 - GitHub Actions release workflow: 6-target build of `simse` from `core`,
   plugin bundling, and GitHub Release publishing on `v*` tags. Added the
   `windows-aarch64` target so the Windows ARM path in `install.ps1` resolves.
