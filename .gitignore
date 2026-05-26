@@ -1,2 +1,14 @@
 node_modules/
 dist/
+
+# Release build artifacts — published to GitHub Releases, not tracked
+# in the source tree. The install scripts (scripts/install.sh /
+# install.ps1) download these from the latest GitHub release; the
+# source tree only owns the plugin ecosystem + install scripts.
+simse-*.tar.gz
+simse-*.zip
+SHA256SUMS
+
+# Local convenience symlink to the sibling core/ submodule (created
+# manually for local development; not part of the tracked layout).
+/core
