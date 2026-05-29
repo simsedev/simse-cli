@@ -1,6 +1,10 @@
 language: 'rust'
 tags: ['cli']
 
+# simse-cli is a hybrid repo: the Rust `simse` binary crate PLUS the TypeScript
+# plugin SDK (plugin-sdk/) and bundled plugins (plugins/). The cargo tasks build
+# the binary; the plugins-* tasks cover the TS ecosystem so neither is dropped
+# from `moon run` coverage.
 workspace:
   inheritedTasks:
     exclude: ['lint', 'setup', 'build', 'dev', 'test', 'start']
@@ -11,6 +15,11 @@ fileGroups:
     - 'Cargo.toml'
     - 'Cargo.lock'
     - 'build.rs'
+  plugins:
+    - 'plugin-sdk/src/**/*'
+    - 'plugins/**/*.ts'
+    - 'plugins/**/plugin.json'
+    - 'plugins/**/tsconfig.json'
 
 tasks:
   setup:
@@ -31,3 +40,22 @@ tasks:
   test:
     command: 'cargo test'
     inputs: ['@globs(sources)']
+
+  # TypeScript plugin SDK + bundled plugins (preserved from the pre-split
+  # moon.yml so the TS ecosystem stays covered by `moon run`).
+  plugins-setup:
+    command: 'bun install'
+    inputs:
+      - 'bun.lock'
+      - 'plugin-sdk/package.json'
+      - 'plugins/*/package.json'
+  plugins-validate:
+    command: 'bash scripts/validate-plugins.sh'
+    inputs:
+      - 'plugins/*/plugin.json'
+      - 'scripts/validate-plugins.sh'
+  plugins-typecheck:
+    command: 'bash scripts/typecheck.sh'
+    inputs:
+      - '@globs(plugins)'
+      - 'scripts/typecheck.sh'
