@@ -15,7 +15,7 @@
 # that would re-pull the very module we extracted — nor `fabric`.
 #
 # No build.rs: the CLI compiles no protos of its own. It reuses the inference
-# proto types through `simse_core::remote::proto::quantiz::inference`, generated
+# proto types through `simse_core::remote::proto::foundry::inference`, generated
 # inside simse-core under its `remote` feature.
 [workspace]
 
@@ -83,7 +83,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
 
 [build-dependencies]
-# Compiles the CLI-local `quantiz/adaptive.proto` (see build.rs). Core no
+# Compiles the CLI-local `foundry/adaptive.proto` (see build.rs). Core no
 # longer exports this proto to library consumers after the purify cut, so the
 # CLI owns its own generated prost message types under src/proto/.
 tonic-prost-build = "0.14"
