@@ -1,0 +1,91 @@
+# simse-cli — the `simse` terminal CLI / agent binary.
+# Extracted from core/src/cli (final phase of the core service-split,
+# per docs/superpowers/specs/2026-05-29-core-service-split-design.md) — this
+# is the cut that makes core a pure library with zero binaries.
+#
+# Standalone crate: dep versions inlined from core/Cargo.toml (no
+# `workspace = true` across repos). Depends on simse-core for the shared
+# substrate modules the CLI references via `simse_core::` (tools, remote,
+# agentic_loop, plugin_manager, error, conversation, config, acp, memory_sync,
+# tasks, prompts, plugin_tools, permissions). Those stay in core; the
+# simse-core feature set below turns on the capability features that expose
+# them: `remote` (remote/tunnel + the inference proto re-export the CLI dials),
+# `plugins` (acp/plugin_manager/plugin_tools), `sandbox` (tools/bucket), and
+# `scheduler` (tasks). We deliberately do NOT enable core's `cli` feature —
+# that would re-pull the very module we extracted — nor `fabric`.
+#
+# No build.rs: the CLI compiles no protos of its own. It reuses the inference
+# proto types through `simse_core::remote::proto::quantiz::inference`, generated
+# inside simse-core under its `remote` feature.
+[workspace]
+
+[package]
+name = "simse-cli"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+name = "simse_cli"
+path = "src/lib.rs"
+
+[[bin]]
+name = "simse"
+path = "src/main.rs"
+
+# Capability markers. In core these were sub-features the `cli` feature implied;
+# the copied source still carries `#[cfg(feature = "...")]` gates against the
+# *current crate's* features, so the CLI crate re-declares them and turns them
+# on by default. `plugins` gates the plugin loader/marketplace paths;
+# `adaptive` gates the remote adaptive-memory command surface in remote_cmd.rs.
+[features]
+default = ["plugins", "adaptive"]
+plugins = []
+adaptive = []
+
+[dependencies]
+simse-core = { path = "../core", default-features = false, features = [
+    "remote",
+    "plugins",
+    "sandbox",
+    "scheduler",
+    # `adaptive` gates core's `memory_sync` module (cfg(all(remote, adaptive)))
+    # that the CLI's remote_cmd.rs / event_loop.rs drive.
+    "adaptive",
+    # `cli` is the gate that exposes `simse_core::tools::{memory, subagent_cli}`
+    # (the only two cfg(feature = "cli") items left in core). It pulls no
+    # binaries when core is consumed as a library — core's [[bin]]s are only
+    # built when core is the top-level package. See notes / core_features_to_add.
+    "cli",
+] }
+
+# CLI front-end deps (the extra crates core's `cli` feature pulled in).
+clap = { version = "4", features = ["derive", "env"] }
+ratatui = "0.30"
+crossterm = { version = "0.29", features = ["event-stream"] }
+pulldown-cmark = { version = "0.13", default-features = false }
+dirs = "6"
+open = "5"
+hostname = "0.4"
+libc = "0.2"
+
+# Shared substrate deps used directly by the copied CLI source.
+im = { version = "15", features = ["serde"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["raw_value"] }
+prost = "0.14"
+reqwest = { version = "0.13", features = ["json", "form", "stream"] }
+regex = "1"
+chrono = { version = "0.4", features = ["serde"] }
+uuid = { version = "1", features = ["v4"] }
+base64 = "0.22"
+async-trait = "0.1"
+thiserror = "2"
+futures = "0.3"
+tokio-util = { version = "0.7", features = ["compat"] }
+
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+
+[dev-dependencies]
+tempfile = "3"
