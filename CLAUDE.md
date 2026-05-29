@@ -4,16 +4,26 @@ Guide for agents working in `simse-cli/`.
 
 ## Overview
 
-`simse-cli` is the CLI packaging repo for simse. It contains the plugin SDK, first-party plugins, and cross-platform install scripts. The Rust CLI binary itself is built from `core/`; this repo owns the plugin ecosystem and distribution.
+`simse-cli` is the home of the `simse` CLI / agent binary plus its packaging: the plugin SDK, first-party plugins, and cross-platform install scripts. The Rust CLI crate was extracted from `core/src/cli` in the final phase of the core service-split (per `docs/superpowers/specs/2026-05-29-core-service-split-design.md`), leaving `core` a pure library with zero binaries. The CLI consumes the shared substrate (tools, remote, agentic_loop, plugin_manager, error, conversation, config, acp, memory_sync, tasks, prompts, plugin_tools, permissions) from `simse-core` via a path dependency; this repo also owns the plugin ecosystem and distribution.
 
 ## Structure
 
 ```text
 simse-cli/
+  Cargo.toml          the `simse-cli` crate ([[bin]] simse)
+  src/                CLI source (lib.rs crate root + main.rs entry)
   plugin-sdk/         shared TypeScript SDK for plugin authors
   plugins/            first-party plugins (ACP, MCP, skills, hooks)
   scripts/            cross-platform install scripts (install.sh, install.ps1)
 ```
+
+## Build
+
+```
+cargo build --release   # produces target/release/simse
+```
+
+The `simse-core` path dep is enabled with `default-features = false` and features `remote, plugins, sandbox, scheduler, adaptive, cli`. The crate declares local `plugins` + `adaptive` feature markers (default-on) that gate the copied `#[cfg(feature = "...")]` code. No `build.rs`: the CLI compiles no protos of its own — it reuses the inference proto types re-exported from `simse-core` under its `remote` feature.
 
 ## Plugin Types
 

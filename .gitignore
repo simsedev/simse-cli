@@ -1,6 +1,9 @@
 node_modules/
 dist/
 
+# Rust build output for the extracted `simse` CLI crate.
+/target
+
 # Release build artifacts — published to GitHub Releases, not tracked
 # in the source tree. The install scripts (scripts/install.sh /
 # install.ps1) download these from the latest GitHub release; the
