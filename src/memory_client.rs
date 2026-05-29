@@ -1,11 +1,11 @@
 //! gRPC-Web `AdaptiveService` client for the CLI.
 //!
 //! The CLI persists and recalls memories against the cloud
-//! `quantiz.adaptive.AdaptiveService`. Unlike the managed bridge — which
+//! `foundry.adaptive.AdaptiveService`. Unlike the managed bridge — which
 //! reaches the baremetal `simse-adaptive` binary over raw h2 gRPC (see
 //! `managed/adaptive_client.rs`) — the CLI has no direct line to the
 //! adaptive service. It goes through `cloud/api`, which proxies
-//! `/quantiz.adaptive.AdaptiveService/*` and speaks Connect / gRPC-Web
+//! `/foundry.adaptive.AdaptiveService/*` and speaks Connect / gRPC-Web
 //! over HTTP/1.1. This client hand-frames that wire protocol via
 //! [`GrpcWebClient`].
 //!
@@ -26,7 +26,7 @@ use simse_core::error::SimseError;
 use simse_core::remote::grpc_web::GrpcWebClient;
 
 /// Fully-qualified gRPC service name (the `cloud/api` proxy path prefix).
-const ADAPTIVE_SERVICE: &str = "quantiz.adaptive.AdaptiveService";
+const ADAPTIVE_SERVICE: &str = "foundry.adaptive.AdaptiveService";
 
 /// Default API gateway base URL.
 const DEFAULT_API_URL: &str = "https://api.simse.dev";

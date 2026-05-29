@@ -18,7 +18,7 @@ use simse_core::agentic_loop::{
 };
 use simse_core::error::SimseError;
 use simse_core::remote::grpc_web::{FLAG_TRAILER, FrameParser, GrpcWebClient, parse_trailer};
-use simse_core::remote::proto::quantiz::inference as pb;
+use simse_core::remote::proto::foundry::inference as pb;
 
 /// Fully-qualified gRPC service + the inference-proxy method.
 const TUNNEL_SERVICE: &str = "simse.tunnel.TunnelService";

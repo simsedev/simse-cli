@@ -4,7 +4,7 @@
 /// is targeted.
 ///
 /// `team_id` is the billing-key (subscription owner). Set by trusted
-/// callers (managed bridge, cloud/api) from the `x-team-id` JWT claim
+/// callers (fabric bridge, cloud/api) from the `x-team-id` JWT claim
 /// so memory-related `record_usage("memories", ±1)` calls bill against
 /// the user's real team instead of falling back to `team=user`.
 /// Legacy callers that don't set this field still work — the server
