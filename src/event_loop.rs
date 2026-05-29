@@ -100,7 +100,7 @@ pub struct CliRuntime {
     /// Deferred dependency cell shared with the `subagent_spawn` /
     /// `subagent_delegate` tool runners. Filled by `fill_subagent_deps`
     /// once the model client (and, if available, the ACP engine) is settled.
-    subagent_deps: simse_core::tools::subagent_cli::DeferredCliSubagent,
+    subagent_deps: crate::tools::subagent_cli::DeferredCliSubagent,
 }
 
 impl CliRuntime {
@@ -131,7 +131,7 @@ impl CliRuntime {
         simse_core::tools::sandboxed::git::register_git_tools(&mut tool_registry);
         // Register the wall-clock tool (`now`).
         simse_core::tools::sandboxed::time::register_time_tool(&mut tool_registry);
-        simse_core::tools::memory::register_memory_tools(&mut tool_registry);
+        crate::tools::memory::register_memory_tools(&mut tool_registry);
 
         // Register todo/task-tracking tools (task_create / task_get /
         // task_update / task_delete / task_list). Backed by an in-process
@@ -146,17 +146,15 @@ impl CliRuntime {
         // Register subagent_spawn / subagent_delegate. The runners hold their
         // dependencies in a deferred cell, filled later by `fill_subagent_deps`
         // once the model client exists (a tool handler cannot borrow `self`).
-        let subagent_deps = simse_core::tools::subagent_cli::deferred_cli_subagent();
+        let subagent_deps = crate::tools::subagent_cli::deferred_cli_subagent();
         simse_core::tools::subagent::register_subagent_tools(
             &mut tool_registry,
             &simse_core::tools::subagent::SubagentToolsOptions {
-                loop_runner: std::sync::Arc::new(
-                    simse_core::tools::subagent_cli::CliSubagentRunner {
-                        deps: subagent_deps.clone(),
-                    },
-                ),
+                loop_runner: std::sync::Arc::new(crate::tools::subagent_cli::CliSubagentRunner {
+                    deps: subagent_deps.clone(),
+                }),
                 delegate_runner: std::sync::Arc::new(
-                    simse_core::tools::subagent_cli::CliDelegateRunner {
+                    crate::tools::subagent_cli::CliDelegateRunner {
                         deps: subagent_deps.clone(),
                     },
                 ),
@@ -222,7 +220,7 @@ impl CliRuntime {
                 std::sync::Arc::clone(&self.tool_registry) as _;
             let _ = self
                 .subagent_deps
-                .set(simse_core::tools::subagent_cli::CliSubagentDeps {
+                .set(crate::tools::subagent_cli::CliSubagentDeps {
                     model_client: std::sync::Arc::clone(client),
                     tool_registry: registry,
                     tool_context: std::sync::Arc::clone(&self.tool_context),

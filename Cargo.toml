@@ -51,11 +51,6 @@ simse-core = { path = "../core", default-features = false, features = [
     # `adaptive` gates core's `memory_sync` module (cfg(all(remote, adaptive)))
     # that the CLI's remote_cmd.rs / event_loop.rs drive.
     "adaptive",
-    # `cli` is the gate that exposes `simse_core::tools::{memory, subagent_cli}`
-    # (the only two cfg(feature = "cli") items left in core). It pulls no
-    # binaries when core is consumed as a library — core's [[bin]]s are only
-    # built when core is the top-level package. See notes / core_features_to_add.
-    "cli",
 ] }
 
 # CLI front-end deps (the extra crates core's `cli` feature pulled in).
@@ -86,6 +81,12 @@ tokio-util = { version = "0.7", features = ["compat"] }
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["fmt", "env-filter"] }
+
+[build-dependencies]
+# Compiles the CLI-local `quantiz/adaptive.proto` (see build.rs). Core no
+# longer exports this proto to library consumers after the purify cut, so the
+# CLI owns its own generated prost message types under src/proto/.
+tonic-prost-build = "0.14"
 
 [dev-dependencies]
 tempfile = "3"
