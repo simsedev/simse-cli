@@ -12,10 +12,11 @@ acknowledgement within 3 business days.
 
 ## Scope
 
-This repository covers CLI packaging: the plugin SDK, first-party plugins,
-install scripts, and the release pipeline. The `simse` binary itself is
-built from the `core` repository — report core runtime vulnerabilities
-against that component.
+This repository owns the `simse` CLI crate (the `simse` binary, built here
+from `simse-cli` with `simse-core` as a path dependency) plus its packaging:
+the plugin SDK, first-party plugins, install scripts, and the release
+pipeline. Vulnerabilities in the shared runtime substrate live in the `core`
+repository (`simse-core`) — report those against that component.
 
 ## Supported Versions
 
