@@ -23,7 +23,7 @@ simse-cli/
 cargo build --release   # produces target/release/simse
 ```
 
-The `simse-core` path dep is enabled with `default-features = false` and features `remote, plugins, sandbox, scheduler, adaptive, cli`. The crate declares local `plugins` + `adaptive` feature markers (default-on) that gate the copied `#[cfg(feature = "...")]` code. No `build.rs`: the CLI compiles no protos of its own — it reuses the inference proto types re-exported from `simse-core` under its `remote` feature.
+The `simse-core` path dep is enabled with `default-features = false` and features `remote, plugins, sandbox, scheduler, adaptive`. The crate declares local `plugins` + `adaptive` feature markers (default-on) that gate the copied `#[cfg(feature = "...")]` code. The CLI owns the cloud-backed memory tools (`src/tools/memory.rs`), the sub-agent / ACP-delegate runners (`src/tools/subagent_cli.rs`), and the gRPC-Web `AdaptiveService` client (`src/memory_client.rs`) — these were re-homed from `core/src` in the core purify cut (core commit 2cc29b3), so the CLI no longer requests core's removed `cli` feature. `build.rs` compiles the one proto the CLI owns locally, `quantiz/adaptive.proto` (from `../foundry/proto`), into `src/proto/` for that memory client; the inference proto types still come re-exported from `simse-core` under its `remote` feature.
 
 ## Plugin Types
 

@@ -46,7 +46,7 @@ struct RawToolCall {
 /// # Examples
 ///
 /// ```
-/// use simse_core::cli::ui_core::tools::parser::parse_tool_calls;
+/// use simse_cli::ui_core::tools::parser::parse_tool_calls;
 ///
 /// let response = r#"Let me search for that.
 /// <tool_use>
